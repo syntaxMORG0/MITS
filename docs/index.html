@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MITS ISA Documentation</title>
+</head>
+<body>
+    <header>
+        <h1>MITS ISA Documentation</h1>
+        <div class="chip">Minimal Instruction Tiny Syntax</div>
+        <p style="margin: 15px 0 0 0; font-size: 0.95em;">A compact assembly language with string handling, ROM data storage, and control flow constructs.</p>
+    </header>
+    <main>
+    
+    source: <button onclick="window.open('https://github.com/syntaxMORG0/MITS')">GitHub Repository</button>
+    
+    <div class="card">
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#quickstart">Getting Started</a></li>
+                <li><a href="#basics">Language Basics</a></li>
+                <li><a href="#core">Core Instructions</a></li>
+                <li><a href="#arithmetic">Arithmetic Operations</a></li>
+                <li><a href="#io">Input/Output</a></li>
+                <li><a href="#control">Control Flow</a></li>
+                <li><a href="#functions">Functions</a></li>
+                <li><a href="#types">Data Types</a></li>
+                <li><a href="#rom">ROM Data</a></li>
+                <li><a href="#errors">Error Handling</a></li>
+                <li><a href="#examples">Examples</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card" id="overview">
+        <h2>Overview</h2>
+        <p>MITS is a minimal, stack-less assembly language designed for simplicity and clarity. It features:</p>
+        <ul>
+            <li>Named registers (variables) with automatic type management</li>
+            <li>Support for numeric, string, and hexadecimal data types</li>
+            <li>ROM-based static data storage</li>
+            <li>Conditional execution and looping</li>
+            <li>User-defined functions with argument passing</li>
+            <li>Interactive input/output operations</li>
+        </ul>
+    </div>
+
+    <div class="card" id="quickstart">
+        <h2>Getting Started</h2>
+
+        <h3>Building the Tools</h3>
+        <p>Build the compiler and interpreter from source you can find it <button onclick="window.open('https://github.com/syntaxMORG0/MITS')">here</button>:</p>
+        <pre><code>make              ; build both mits compiler and mits-interp interpreter
+make clean        ; remove compiled binaries
+make run          ; build and run main.s with main.rom</code></pre>
+
+        <h3>Running MITS Programs</h3>
+        <p>Use the interpreter to execute .s files:</p>
+        <pre><code>; With ROM data file (optional)
+./mits-interp program.s data.rom
+
+; Without ROM data file (ROM is optional)
+./mits-interp program.s
+
+; Examples
+./mits-interp main.s main.rom      ; with ROM
+./mits-interp main.s               ; without ROM</code></pre>
+
+        <h3>ROM Files (Optional)</h3>
+        <p>ROM files are optional and store static data as key-value pairs. If you don't need static data, you can run programs without a ROM file.</p>
+        <p><strong>ROM file format:</strong></p>
+        <pre><code>; String values
+name="John"
+title="MITS"
+
+; Numeric values
+count=42
+version=100</code></pre>
+        <p>In your program, access ROM data with: <code>mov dest, rom=key</code></p>
+        <p>If a ROM key is not found, the program will error. Only use <code>rom=</code> for keys you've defined.</p>
+
+        <h3>File Extensions</h3>
+        <ul>
+            <li><code>.s</code> — Assembly source files (program code)</li>
+            <li><code>.rom</code> — ROM data files (static storage, optional)</li>
+        </ul>
+    </div>
+
+    <div class="card" id="basics">
+        <h2>Language Basics</h2>
+
+        <h3>Program Structure</h3>
+        <ul>
+            <li><strong>Entry point:</strong> Every program must have a <code>_start:</code> label. Execution begins here.</li>
+            <li><strong>Comments:</strong> Start with <code>;</code> and extend to end of line. Both inline and full-line comments are supported.</li>
+            <li><strong>Line length:</strong> Maximum 512 characters per line.</li>
+            <li><strong>Case sensitivity:</strong> Instruction names are lowercase; variable names are case-sensitive.</li>
+        </ul>
+
+        <h3>Variable Naming (Critical Requirement)</h3>
+        <p><strong>ALL variables must be exactly 3 letters (a-z, A-Z only).</strong> This is a strict requirement enforced by the interpreter.</p>
+        <p>This applies to every instruction that assigns a value to a register:</p>
+        <ul>
+            <li><code>mov</code>, <code>char</code>, <code>hex</code>, <code>addr</code>, <code>subr</code>, <code>mul</code>, <code>div</code>, <code>mod</code>, <code>sda</code>, <code>rdl</code></li>
+        </ul>
+        <p><strong>Valid:</strong> <code>abc</code>, <code>xyz</code>, <code>msg</code>, <code>tmp</code>, <code>ret</code>, <code>nam</code></p>
+        <p><strong>Invalid:</strong> <code>rax</code>, <code>x</code>, <code>buffer</code>, <code>my_var</code></p>
+
+        <div class="warning">
+            <strong>Error on violation:</strong> Using variable names that aren't exactly 3 alphabetic letters will cause runtime errors.
+        </div>
+
+        <h3>Data Types</h3>
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Created By</th>
+                <th>Characteristics</th>
+            </tr>
+            <tr>
+                <td><strong>NUMBER</strong></td>
+                <td><code>mov</code>, arithmetic, ROM numeric</td>
+                <td>64-bit signed integer. Supports arithmetic.</td>
+            </tr>
+            <tr>
+                <td><strong>STRING</strong></td>
+                <td><code>char</code>, <code>rdl</code>, ROM string</td>
+                <td>Text data. Must be converted via pipeline to display.</td>
+            </tr>
+            <tr>
+                <td><strong>HEX</strong></td>
+                <td><code>hex</code>, <code>mov dest, hex=src</code></td>
+                <td>Byte array. Can be concatenated with <code>addr</code>.</td>
+            </tr>
+        </table>
+
+        <h3>String Literals</h3>
+        <p>Strings are enclosed in double quotes: <code>"hello"</code>, <code>"Line 1\nLine 2"</code></p>
+        <p>Maximum length: 511 characters</p>
+
+        <h3>Expressions and Arithmetic</h3>
+        <ul>
+            <li><strong>Addition:</strong> <code>a + b</code> — numeric addition or hex concatenation</li>
+            <li><strong>Subtraction:</strong> <code>a - b</code> — numeric only (used in <code>subr</code>)</li>
+            <li><strong>Evaluation:</strong> Left-to-right</li>
+            <li><strong>Type restrictions:</strong> Cannot mix strings and numbers in arithmetic</li>
+        </ul>
+
+        <h3 id="rom">ROM Data Storage (Optional)</h3>
+        <p><strong>ROM files are completely optional.</strong> They store static data as key-value pairs. If your program doesn't need predefined data, you can run without a ROM file.</p>
+        <p>ROM file format (e.g., <code>main.rom</code>):</p>
+        <pre><code>; String values
+name="John"
+title="MITS"
+
+; Numeric values
+count=42
+version=100</code></pre>
+        <p>Access in program: <code>mov dest, rom=key</code></p>
+        <p><strong>Important:</strong> Only use <code>rom=key</code> for keys that exist in your ROM file. Accessing undefined keys will cause an error.</p>
+    </div>
+
+    <div class="card" id="core">
+        <h2>Core Instructions</h2>
+
+        <h3>Data Movement</h3>
+
+        <p><strong>mov dest, src</strong> — Move a value into a register.</p>
+        <pre><code>mov abc, 10           ; numeric literal
+mov def, abc          ; copy from register
+mov ghi, abc + def    ; arithmetic result
+mov jkl, rom=count    ; from ROM
+mov mno, code=1       ; exit code</code></pre>
+
+        <p><strong>char dest, "string"</strong> — Store a string literal in a register.</p>
+        <div class="warning">
+            <strong>Display requirement:</strong> String values created with <code>char</code> require the conversion pipeline to display:<br/>
+            <code>char msg, "text"</code> → <code>mov hex, hex=msg</code> → <code>mov str, b31 hex</code> → <code>vga str</code>
+        </div>
+        <pre><code>; CORRECT: Follow the pipeline
+char msg, "hello"
+mov h1, hex=msg       ; STRING → HEX
+mov h2, b31 h1        ; HEX → STRING
+vga h2                ; output: hello</code></pre>
+
+        <p><strong>hex dest, "hex_bytes"</strong> — Load raw hexadecimal bytes.</p>
+        <p>Supports space-separated or continuous format:</p>
+        <pre><code>hex buf, "48 65 6C 6C 6F"   ; space-separated
+hex raw, "48656c6c6f"       ; continuous
+hex all, "00 FF AA BB"      ; any byte values</code></pre>
+
+        <h3>Type Conversion</h3>
+
+        <p><strong>mov dest, hex=src</strong> — Convert STRING to HEX bytes.</p>
+        <pre><code>char msg, "MITS"
+mov hex, hex=msg
+vga hex               ; outputs: 4d 49 54 53</code></pre>
+
+        <p><strong>mov dest, b31 src</strong> — Convert HEX bytes back to STRING.</p>
+        <pre><code>char msg, "hello"
+mov h1, hex=msg       ; STRING → HEX
+mov h2, b31 h1        ; HEX → STRING
+vga h2                ; outputs: hello</code></pre>
+
+        <p><strong>mov dest, rom=key</strong> — Load value from ROM storage.</p>
+        <pre><code>; From main.rom: title="MITS", version=100
+mov ttl, rom=title    ; loads STRING type
+mov ver, rom=version  ; loads NUMBER type
+
+; Display ROM string
+mov hex, hex=ttl
+mov str, b31 hex
+vga str               ; outputs: MITS
+
+vga ver               ; outputs: 100</code></pre>
+
+        <p><strong>mov dest, code=N</strong> — Load an exit code.</p>
+        <pre><code>mov ext, code=0       ; success
+mov err, code=1       ; error
+exec ext              ; exit program</code></pre>
+    </div>
+
+    <div class="card" id="arithmetic">
+        <h2>Arithmetic Operations</h2>
+
+        <p><strong>addr dest, expr</strong> — ADD numbers or concatenate HEX arrays.</p>
+        <pre><code>; Addition
+mov a, 10
+mov b, 20
+addr c, a + b         ; c = 30
+
+; HEX concatenation
+hex h1, "48 65"       ; "He"
+hex h2, "6C 6C 6F"    ; "llo"
+addr result, h1 + h2  ; merged bytes
+mov txt, b31 result
+vga txt               ; outputs: Hello</code></pre>
+
+        <p><strong>subr dest, a - b</strong> — SUBTRACT right from left.</p>
+        <pre><code>mov x, 100
+mov y, 35
+subr z, x - y         ; z = 65</code></pre>
+
+        <p><strong>mul dest, a * b</strong> — MULTIPLY two numbers.</p>
+        <pre><code>mov n1, 12
+mov n2, 5
+mul prod, n1 * n2     ; prod = 60</code></pre>
+
+        <p><strong>div dest, a / b</strong> — INTEGER DIVISION (floor).</p>
+        <pre><code>mov num, 20
+mov den, 3
+div quot, num / den   ; quot = 6</code></pre>
+
+        <p><strong>mod dest, a % b</strong> — MODULO (remainder).</p>
+        <pre><code>mov a, 20
+mov b, 3
+mod rem, a % b        ; rem = 2</code></pre>
+
+        <p><strong>sda dest, value1, value2, ...</strong> — SUM all values.</p>
+        <pre><code>sda sum, 10, 20, 30   ; sum = 60
+
+mov a, 5
+mov b, 10
+sda total, a, b       ; total = 15</code></pre>
+    </div>
+
+    <div class="card" id="io">
+        <h2>Input and Output</h2>
+
+        <p><strong>vga value</strong> — Output to stdout.</p>
+        <p>Output format depends on type:</p>
+        <ul>
+            <li><strong>NUMBER:</strong> Decimal</li>
+            <li><strong>HEX:</strong> Space-separated hex bytes</li>
+            <li><strong>STRING:</strong> Raw text (must be from conversion pipeline)</li>
+        </ul>
+        <pre><code>mov n, 42
+vga n                 ; outputs: 42
+
+hex h, "48 65 6C 6C 6F"
+vga h                 ; outputs: 48 65 6c 6c 6f
+
+char msg, "hello"
+mov h1, hex=msg
+mov h2, b31 h1
+vga h2                ; outputs: hello</code></pre>
+
+        <p><strong>rdl dest</strong> — Read LINE from stdin.</p>
+        <p>Reads one line of user input, stores as STRING. Trailing newline is removed. Destination must be 3 letters.</p>
+        <pre><code>char pro, "Enter name: "
+mov hex, hex=pro
+mov pmt, b31 hex
+vga pmt
+
+rdl nam               ; read input
+mov hex, hex=nam
+mov out, b31 hex
+vga out               ; output the input</code></pre>
+
+        <div class="note">
+            <strong>Note:</strong> Input from <code>rdl</code> is STRING type and requires conversion before display.
+        </div>
+    </div>
+
+    <div class="card" id="control">
+        <h2>Control Flow</h2>
+
+        <p><strong>exec register</strong> — Execute exit code stored in register.</p>
+        <pre><code>mov ext, code=1
+exec ext              ; program exits with code 1</code></pre>
+
+        <p><strong>exec sys=help</strong> — List all available instructions.</p>
+        <pre><code>exec sys=help         ; outputs instruction list</code></pre>
+
+        <p><strong>for mov index, start, end, exec: ... end</strong> — Loop from start to end.</p>
+        <pre><code>mov cnt, 3
+for mov i, 0, cnt, exec:
+    vga i             ; outputs: 0, 1, 2
+end</code></pre>
+
+        <p><strong>cond condition, exec: ... end</strong> — Conditional execution.</p>
+        <p>Supports: <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>==</code>, <code>!=</code></p>
+        <pre><code>mov x, 5
+mov y, 10
+cond x < y, exec:
+    vga 1             ; executes if x < y
+end
+
+cond x == y, exec:
+    vga 2
+else
+    vga 3             ; else clause
+end</code></pre>
+    </div>
+
+    <div class="card" id="functions">
+        <h2>Functions and Modules</h2>
+
+        <p><strong>def name, ARGUMENTS, exec: ... end</strong> — Define a reusable function.</p>
+        <p><strong>exec name, arg1, arg2, ...</strong> — Call a function. Arguments are numeric.</p>
+        <p>Inside functions: access arguments via <code>ARG1</code>, <code>ARG2</code>, or <code>ARGUMENTS</code> (sum of all).</p>
+        <pre><code>def add, ARGUMENTS, exec:
+    sda ret, ARGUMENTS
+end
+
+_start:
+    exec add, 10, 20
+    vga ret           ; outputs: 30</code></pre>
+
+        <p><strong>req ftype="rom"|"asm", "filename"</strong> — Import external files (ROM or ASM).</p>
+        <p>Allows modular code structure. Files are deduplicated automatically.</p>
+        <pre><code>req ftype="rom", "data.rom"
+req ftype="asm", "helpers.s"</code></pre>
+    </div>
+
+    <div class="card" id="types">
+        <h2>Type System</h2>
+        <ul>
+            <li><strong>NUMBER:</strong> 64-bit signed integer. Used for arithmetic and comparisons.</li>
+            <li><strong>STRING:</strong> Text data. Created with <code>char</code> or <code>rdl</code>. Cannot be used in arithmetic.</li>
+            <li><strong>HEX:</strong> Byte array representation. Result of <code>hex</code> or <code>mov dest, hex=src</code>.</li>
+            <li><strong>Arguments:</strong> Inside functions, <code>ARG1</code>, <code>ARG2</code>, etc. are numeric.</li>
+        </ul>
+
+        <h3>Type Conversion Pipeline</h3>
+        <p>To display string values, follow this mandatory pipeline:</p>
+        <pre><code>; Step 1: Create string with char
+char original, "hello world"
+
+; Step 2: Convert to HEX
+mov step1, hex=original
+
+; Step 3: Convert back to STRING
+mov step2, b31 step1
+
+; Step 4: Display with vga
+vga step2             ; outputs: hello world</code></pre>
+    </div>
+
+    <div class="card" id="errors">
+        <h2>Error Handling</h2>
+        <ul>
+            <li><strong>Missing _start:</strong> Compilation error. Program will not run.</li>
+            <li><strong>Invalid variable name:</strong> Must be exactly 3 alphabetic letters. Otherwise runtime error.</li>
+            <li><strong>Unknown instruction:</strong> Reported with line number and context.</li>
+            <li><strong>Type mismatch:</strong> E.g., arithmetic on STRING without conversion. Clear error message.</li>
+            <li><strong>Division by zero:</strong> Results in error. Check denominator before dividing.</li>
+        </ul>
+    </div>
+
+    <div class="card" id="examples">
+        <h2>Complete Examples</h2>
+
+        <h3>Basic Arithmetic</h3>
+        <pre><code>_start:
+    mov a, 100
+    mov b, 50
+    addr c, a + b
+    vga c             ; outputs: 150
+    mov ext, code=0
+    exec ext</code></pre>
+
+        <h3>String Handling</h3>
+        <pre><code>_start:
+    char msg, "Hello, MITS!"
+    mov h1, hex=msg
+    mov h2, b31 h1
+    vga h2            ; outputs: Hello, MITS!
+    mov ext, code=0
+    exec ext</code></pre>
+
+        <h3>User Interaction</h3>
+        <pre><code>_start:
+    char ask, "Enter your name: "
+    mov h1, hex=ask
+    mov p2, b31 h1
+    vga p2
+    
+    rdl nam
+    mov h3, hex=nam
+    mov out, b31 h3
+    vga out
+    
+    mov ext, code=0
+    exec ext</code></pre>
+
+        <h3>ROM Data Usage</h3>
+        <pre><code>; main.rom:
+; title="MITS ISA"
+; version=100
+
+_start:
+    mov ttl, rom=title
+    mov h1, hex=ttl
+    mov h2, b31 h1
+    vga h2            ; outputs: MITS ISA
+    
+    mov ver, rom=version
+    vga ver           ; outputs: 100
+    
+    mov ext, code=0
+    exec ext</code></pre>
+
+        <h3>Functions</h3>
+        <pre><code>def multiply, ARGUMENTS, exec:
+    sda prod, ARG1, ARG1
+    sda prod, ARGUMENTS
+end
+
+_start:
+    exec multiply, 5, 3
+    vga prod          ; outputs: product
+    mov ext, code=0
+    exec ext</code></pre>
+
+        <h3>Control Flow</h3>
+        <pre><code>_start:
+    mov x, 5
+    mov y, 10
+    
+    cond x < y, exec:
+        char msg, "x is smaller"
+        mov h1, hex=msg
+        mov h2, b31 h1
+        vga h2
+    end
+    
+    for mov i, 0, 3, exec:
+        vga i         ; outputs: 0, 1, 2
+    end
+    
+    mov ext, code=0
+    exec ext</code></pre>
+    </div>
+
+    </main>
+</body>
+</html>
