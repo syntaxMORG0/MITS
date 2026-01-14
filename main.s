@@ -1,5 +1,10 @@
 _start:
-	mov int, 3
-	for mov i, 0, cnt, exec:
-    		vga i             ; outputs: 0, 1, 2
-	end
+	char rax, "hello, world"
+	mov rbx, hex=rax
+	mov rax, b31 rbx
+
+	vga rax
+	mov rax, 0
+
+	mov ext, code=0
+	exec ext
