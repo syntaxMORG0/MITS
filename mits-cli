@@ -1,0 +1,52 @@
+#!/bin/bash
+# MITS Interpreter Wrapper
+# Usage: mits run <assembly.s>
+
+if [[ $# -lt 2 ]]; then
+    echo "Usage: mits run <assembly.s> [rom_file]"
+    echo ""
+    echo "Examples:"
+    echo "  mits run main.s main.rom"
+    echo "  mits run test.s                 (uses main.rom by default)"
+    exit 1
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTERPRETER="$SCRIPT_DIR/mits-interp"
+ASSEMBLY="$2"
+ROM="${3:-main.rom}"
+
+if [ ! -f "$INTERPRETER" ]; then
+    echo "Error: mits-interp not found. Building..."
+    cd "$SCRIPT_DIR" && make mits-interp
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to build mits-interp"
+        exit 1
+    fi
+fi
+
+if [ ! -f "$ASSEMBLY" ]; then
+    echo "Error: Assembly file '$ASSEMBLY' not found"
+    exit 1
+fi
+
+# Handle different commands
+case "$1" in
+    run)
+        exec "$INTERPRETER" "$ASSEMBLY" "$ROM"
+        ;;
+    build)
+        # Delegate to build command
+        BUILD_CMD="$SCRIPT_DIR/mits"
+        if [ ! -f "$BUILD_CMD" ]; then
+            cd "$SCRIPT_DIR" && make mits
+        fi
+        shift
+        exec "$BUILD_CMD" build "$@"
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Available commands: run, build"
+        exit 1
+        ;;
+esac
