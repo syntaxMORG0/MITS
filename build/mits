@@ -1,3 +1,3 @@
 #!/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$SCRIPT_DIR/build/mits-interp" "$@"
+exec "$SCRIPT_DIR/mits-interp" "$@"

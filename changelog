@@ -1,0 +1,23 @@
+MITS 2.0 - 16.01.2026
+
+    - Refactored codebase for improved readability and maintainability.
+
+    - Improved error handling
+
+    - Improved Hex Dumping
+    
+    - Updated syntax for better clarity
+
+    - Fixed `addr` function to correctly calculate addresses in all scenarios.
+
+    - Fixed bug in `mov` instruction when handling immediate values.
+
+    - Added new `read` instruction for inspecting memory, ROM, and registers.
+
+    - Added support for hex and float conversions in `mov` instruction.
+
+    - Added a dedicated CLI tool for debugging
+
+    - Added more code formats
+
+    - Added a WASM library for web integration.
