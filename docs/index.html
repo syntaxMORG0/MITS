@@ -54,7 +54,7 @@
     <header>
         <h1>MITS ISA Documentation</h1>
         <p><strong>Multi Instruction Table Set</strong></p>
-        <p>A compact, minimal assembly language designed for simplicity and educational purposes. MITS features intuitive string handling, ROM-based static data storage, powerful control flow constructs, and a unique 3-letter variable naming convention that enforces concise, readable code.</p>
+        <p>A compact, minimal assembly language designed for simplicity. MITS features intuitive string handling, ROM-based static data storage, powerful control flow constructs, and a unique 3-letter variable naming convention that enforces concise, readable code.</p>
         <p>Developed and maintained by <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg><a class="github-link" href="https://github.com/syntaxMORG0" target="_blank">syntaxMORG0</a></p>
     </header>
     <main>
@@ -90,7 +90,7 @@
 
     <div id="overview">
         <h2>Overview</h2>
-        <p>MITS (Multi Instruction Table Set) is a minimal, stack-less assembly language designed for simplicity, clarity, and educational purposes. Unlike traditional assembly languages with complex register management and memory addressing, MITS provides a clean, intuitive interface for low-level programming while maintaining powerful functionality.</p>
+        <p>MITS (Multi Instruction Table Set) is a minimal, stack-less assembly language designed for simplicity and clarity. Unlike traditional assembly languages with complex register management and memory addressing, MITS provides a clean, intuitive interface for low-level programming while maintaining powerful functionality.</p>
         
         <p><strong>Key Features:</strong></p>
         <ul>
@@ -164,7 +164,7 @@ version=100</code></pre>
         <p><strong>Why 3 letters?</strong> This limitation encourages thoughtful naming (like <code>msg</code> for message, <code>cnt</code> for count, <code>idx</code> for index) while keeping code compact and readable. It's similar to how assembly traditionally uses short register names, but with semantic meaning.</p>
         <p><strong>Valid names:</strong> <code>abc</code>, <code>xyz</code>, <code>msg</code>, <code>tmp</code>, <code>ret</code>, <code>num</code>, <code>str</code>, <code>val</code></p>
         <p><strong>Invalid names:</strong> <code>ab</code> (too short), <code>abcd</code> (too long), <code>a1b</code> (contains digit), <code>my_var</code> (too long, has underscore)</p>
-        <p><strong>⚠️ ERROR:</strong> Using invalid variable names will cause immediate runtime errors with a descriptive message.</p>
+        <p><strong>ERROR:</strong> Using invalid variable names will cause immediate runtime errors with a descriptive message.</p>
 
         <h3>Data Types</h3>
         <table border="1" cellpadding="5" cellspacing="0">
